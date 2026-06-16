@@ -2101,38 +2101,122 @@ def generate_launch_description():
 #### `ros2_jazzy/phantom_ws/src/pincher_description/launch/display_gui.launch.py`
 
 ```python
-import os
+#!/usr/bin/env python3
 
-from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
-from launch.launch_description_sources import PythonLaunchDescriptionSource
-from launch.substitutions import LaunchConfiguration
+from launch.actions import DeclareLaunchArgument
+from launch.substitutions import (
+    Command,
+    FindExecutable,
+    LaunchConfiguration,
+    PathJoinSubstitution,
+)
 from launch_ros.actions import Node
+from launch_ros.substitutions import FindPackageShare
 
 
 def generate_launch_description():
-    description_share = get_package_share_directory('pincher_description')
-    display_launch = PythonLaunchDescriptionSource(
-        os.path.join(description_share, 'launch', 'display.launch.py')
+    # ---------------------------------------------------------
+    # Argumentos del launch
+    # ---------------------------------------------------------
+    use_meshes = LaunchConfiguration('use_meshes')
+
+    # ---------------------------------------------------------
+    # Rutas del paquete
+    # ---------------------------------------------------------
+    package_share = FindPackageShare('pincher_description')
+
+    xacro_file = PathJoinSubstitution([
+        package_share,
+        'urdf',
+        'robot.xacro',
+    ])
+
+    rviz_config_file = PathJoinSubstitution([
+        package_share,
+        'rviz',
+        'pincher.rviz',
+    ])
+
+    # ---------------------------------------------------------
+    # Procesar Xacro
+    # ---------------------------------------------------------
+    robot_description_content = Command([
+        FindExecutable(name='xacro'),
+        ' ',
+        xacro_file,
+        ' ',
+        'use_meshes:=',
+        use_meshes,
+    ])
+
+    robot_description = {
+        'robot_description': robot_description_content
+    }
+
+    # ---------------------------------------------------------
+    # robot_state_publisher
+    # Recibe /joint_states y publica /tf y /tf_static
+    # ---------------------------------------------------------
+    robot_state_publisher_node = Node(
+        package='robot_state_publisher',
+        executable='robot_state_publisher',
+        name='robot_state_publisher',
+        output='screen',
+        parameters=[
+            robot_description,
+            {
+                'publish_frequency': 30.0,
+                'ignore_timestamp': False,
+            },
+        ],
+    )
+
+    # ---------------------------------------------------------
+    # joint_state_publisher_gui
+    # Publica /joint_states para las articulaciones móviles
+    # ---------------------------------------------------------
+    joint_state_publisher_gui_node = Node(
+        package='joint_state_publisher_gui',
+        executable='joint_state_publisher_gui',
+        name='joint_state_publisher_gui',
+        output='screen',
+        parameters=[
+            robot_description,
+            {
+                'rate': 30,
+                'publish_default_positions': True,
+                'publish_default_velocities': False,
+                'publish_default_efforts': False,
+                'use_mimic_tags': True,
+            },
+        ],
+    )
+
+    # ---------------------------------------------------------
+    # RViz2
+    # ---------------------------------------------------------
+    rviz_node = Node(
+        package='rviz2',
+        executable='rviz2',
+        name='rviz2',
+        output='screen',
+        arguments=[
+            '-d',
+            rviz_config_file,
+        ],
     )
 
     return LaunchDescription([
-        DeclareLaunchArgument('use_meshes', default_value='false'),
-        IncludeLaunchDescription(
-            display_launch,
-            launch_arguments={
-                'use_meshes': LaunchConfiguration('use_meshes'),
-                'start_rviz': 'true',
-                'use_sim_time': 'false',
-            }.items(),
+        DeclareLaunchArgument(
+            'use_meshes',
+            default_value='true',
+            description='Mostrar las mallas STL del robot.',
         ),
-        Node(
-            package='joint_state_publisher_gui',
-            executable='joint_state_publisher_gui',
-            name='joint_state_publisher_gui',
-            output='screen',
-        ),
+
+        robot_state_publisher_node,
+        joint_state_publisher_gui_node,
+        rviz_node,
     ])
 ```
 
