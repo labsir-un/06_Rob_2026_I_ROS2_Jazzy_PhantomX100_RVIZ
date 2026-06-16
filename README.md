@@ -35,7 +35,11 @@
 - [5. Diferencias entre AX-12A y XL430](#5-diferencias-entre-ax-12a-y-xl430)
 - [6. Instalación de ROS 2 Jazzy y dependencias](#6-instalación-de-ros-2-jazzy-y-dependencias)
 - [7. Preparación del puerto serie](#7-preparación-del-puerto-serie)
-- [8. Creación del workspace](#8-creación-del-workspace)
+- [8. Creación del workspace y de los paquetes](#8-creación-del-workspace-y-de-los-paquetes)
+  - [8.1 Crear el workspace](#81-crear-el-workspace)
+  - [8.2 Crear `pincher_control`](#82-crear-pincher_control)
+  - [8.3 Crear `pincher_description`](#83-crear-pincher_description)
+  - [8.4 Verificar la creación](#84-verificar-la-creación)
 - [9. Estructura completa del repositorio](#9-estructura-completa-del-repositorio)
 - [10. Código completo de `pincher_control`](#10-código-completo-de-pincher_control)
 - [11. Código completo de `pincher_description`](#11-código-completo-de-pincher_description)
@@ -228,32 +232,190 @@ No se recomienda ejecutar el nodo permanentemente con `sudo`.
 
 ---
 
-## 8. Creación del workspace
+## 8. Creación del workspace y de los paquetes
 
-El repositorio descargado ya contiene los paquetes `pincher_control` y `pincher_description`. Para trabajar en la ruta recomendada, crea el workspace y copia directamente ambos paquetes:
+Esta sección muestra la creación completa del workspace y de los dos paquetes. Los comandos deben ejecutarse antes de reemplazar el contenido de los archivos con el código de las secciones 10 y 11.
+
+> **Ruta usada en toda la guía:** `~/ros2_jazzy/phantom_ws`. La ruta `~/ros_humble/phantom_ws` no se usa porque este repositorio corresponde a ROS 2 Jazzy.
+
+### 8.1 Crear el workspace
+
+Carga ROS 2 Jazzy y crea la carpeta `src`:
 
 ```bash
 source /opt/ros/jazzy/setup.bash
 
 mkdir -p ~/ros2_jazzy/phantom_ws/src
-cd ~/PhantomX_Pincher_X100_ROS2_Jazzy
-
-cp -r ros2_jazzy/phantom_ws/src/pincher_control \
-      ~/ros2_jazzy/phantom_ws/src/
-
-cp -r ros2_jazzy/phantom_ws/src/pincher_description \
-      ~/ros2_jazzy/phantom_ws/src/
+cd ~/ros2_jazzy/phantom_ws/src
 ```
 
-La estructura mínima dentro del workspace debe quedar así:
+Comprueba la ruta actual:
+
+```bash
+pwd
+```
+
+La salida debe terminar en:
+
+```text
+/ros2_jazzy/phantom_ws/src
+```
+
+### 8.2 Crear `pincher_control`
+
+Desde `phantom_ws/src`, genera el paquete de control en Python:
+
+```bash
+cd ~/ros2_jazzy/phantom_ws/src
+
+ros2 pkg create --build-type ament_python pincher_control \
+  --dependencies rclpy dynamixel_sdk
+```
+
+ROS 2 crea inicialmente:
+
+```text
+pincher_control/
+├── package.xml
+├── setup.py
+├── setup.cfg
+├── resource/
+│   └── pincher_control
+├── pincher_control/
+│   └── __init__.py
+└── test/
+```
+
+Crea las carpetas adicionales del paquete:
+
+```bash
+cd ~/ros2_jazzy/phantom_ws/src/pincher_control
+mkdir -p config launch
+```
+
+Crea los archivos de código, configuración y lanzamiento que se completarán en la sección 10:
+
+```bash
+touch pincher_control/dynamixel_profiles.py
+touch pincher_control/control_servo.py
+touch pincher_control/pincher_gui.py
+touch pincher_control/scan_dynamixel.py
+
+touch config/ax12a.yaml
+touch config/xl430.yaml
+touch launch/pincher_system.launch.py
+```
+
+La carpeta `test` generada automáticamente no se utiliza en esta guía. Para que la estructura coincida con el repositorio final:
+
+```bash
+rm -rf test
+```
+
+> El comando de creación añade inicialmente `rclpy` y `dynamixel_sdk`. En la sección 10 se reemplaza `package.xml` por la versión completa, que declara también `sensor_msgs`, `std_msgs`, `std_srvs`, `launch`, `launch_ros` y `pincher_description`.
+
+### 8.3 Crear `pincher_description`
+
+Regresa a `phantom_ws/src` y crea el paquete de descripción:
+
+```bash
+cd ~/ros2_jazzy/phantom_ws/src
+
+ros2 pkg create --build-type ament_python pincher_description
+```
+
+ROS 2 crea inicialmente:
+
+```text
+pincher_description/
+├── package.xml
+├── setup.py
+├── setup.cfg
+├── resource/
+│   └── pincher_description
+├── pincher_description/
+│   └── __init__.py
+└── test/
+```
+
+Crea las carpetas del modelo y de visualización:
+
+```bash
+cd ~/ros2_jazzy/phantom_ws/src/pincher_description
+mkdir -p meshes urdf rviz launch
+```
+
+Crea los archivos que se completarán en la sección 11:
+
+```bash
+touch urdf/robot.xacro
+touch rviz/pincher.rviz
+touch launch/display.launch.py
+touch launch/display_gui.launch.py
+```
+
+Este paquete usa `setup.py` solamente para instalar recursos; no contiene nodos Python. Por eso se eliminan el módulo Python vacío y la carpeta de pruebas que genera `ros2 pkg create`:
+
+```bash
+rm -rf pincher_description
+rm -rf test
+```
+
+Descarga los ocho archivos de la carpeta `meshes` anexa al repositorio y cópialos en:
+
+```text
+~/ros2_jazzy/phantom_ws/src/pincher_description/meshes/
+```
+
+Los nombres deben conservarse exactamente como se muestran en la sección 12.
+
+### 8.4 Verificar la creación
+
+Comprueba la estructura antes de pegar el código:
+
+```bash
+cd ~/ros2_jazzy/phantom_ws/src
+tree -L 3
+```
+
+La estructura mínima debe ser:
 
 ```text
 ~/ros2_jazzy/phantom_ws/src/
 ├── pincher_control/
+│   ├── config/
+│   │   ├── ax12a.yaml
+│   │   └── xl430.yaml
+│   ├── launch/
+│   │   └── pincher_system.launch.py
+│   ├── package.xml
+│   ├── pincher_control/
+│   │   ├── __init__.py
+│   │   ├── control_servo.py
+│   │   ├── dynamixel_profiles.py
+│   │   ├── pincher_gui.py
+│   │   └── scan_dynamixel.py
+│   ├── resource/
+│   │   └── pincher_control
+│   ├── setup.cfg
+│   └── setup.py
 └── pincher_description/
+    ├── launch/
+    │   ├── display.launch.py
+    │   └── display_gui.launch.py
+    ├── meshes/
+    ├── package.xml
+    ├── resource/
+    │   └── pincher_description
+    ├── rviz/
+    │   └── pincher.rviz
+    ├── setup.cfg
+    ├── setup.py
+    └── urdf/
+        └── robot.xacro
 ```
 
-> Para este proyecto, `rosdep` debe ejecutarse con `--rosdistro jazzy`, no con `--rosdistro humble`.
+A partir de este punto, reemplaza cada archivo con el contenido completo de las secciones 10 y 11.
 
 ---
 
@@ -306,11 +468,13 @@ PhantomX_Pincher_X100_ROS2_Jazzy/
 
 Las ocho mallas STL se entregan en la carpeta `meshes` anexa al repositorio. Deben copiarse dentro de `pincher_description/meshes` conservando exactamente los nombres indicados.
 
+
 ---
+
 
 ## 10. Código completo de `pincher_control`
 
-`pincher_control` es un paquete `ament_python`. El controlador publica `/joint_states`, recibe objetivos en `/pincher/command`, permite actualizar velocidad y expone servicios estándar sin crear interfaces personalizadas.
+`pincher_control` es el paquete `ament_python` creado en la sección 8.2. Reemplaza ahora los archivos generados por ROS 2 y completa los archivos vacíos con el contenido presentado a continuación. El controlador publica `/joint_states`, recibe objetivos en `/pincher/command`, permite actualizar velocidad y expone servicios estándar sin crear interfaces personalizadas.
 
 #### `ros2_jazzy/phantom_ws/src/pincher_control/package.xml`
 
@@ -1555,7 +1719,7 @@ def generate_launch_description():
 
 ## 11. Código completo de `pincher_description`
 
-Aunque un paquete de descripción suele implementarse con `ament_cmake`, esta versión usa `ament_python` porque instala los recursos mediante `setup.py`. No deben mezclarse instrucciones de `ament_cmake` con un `setup.py` de Python.
+`pincher_description` es el paquete `ament_python` creado en la sección 8.3. Reemplaza ahora `package.xml`, `setup.py` y `setup.cfg`, y completa los archivos de `urdf`, `launch` y `rviz` con el contenido presentado a continuación. Aunque un paquete de descripción suele implementarse con `ament_cmake`, esta versión usa `ament_python` porque instala los recursos mediante `setup.py`. No deben mezclarse instrucciones de `ament_cmake` con un `setup.py` de Python.
 
 #### `ros2_jazzy/phantom_ws/src/pincher_description/package.xml`
 
@@ -2109,7 +2273,7 @@ Window Geometry:
 ```markdown
 # Mallas del PhantomX Pincher X100
 
-Descarga los archivos de la carpeta `meshes` anexa al repositorio y ubícalos en esta carpeta. Deben conservar exactamente estos nombres:
+Descarga o copia los archivos de la carpeta `meshes` anexa al repositorio y ubícalos en esta carpeta. Deben conservar exactamente estos nombres:
 
 - `px100_1_base.stl`
 - `px100_2_shoulder.stl`
@@ -2130,7 +2294,7 @@ El paquete puede iniciarse temporalmente con `use_meshes:=false` para validar TF
 
 ## 12. Descarga y ubicación de las mallas STL
 
-Descarga los ocho archivos de la carpeta `meshes` anexa al repositorio y ubícalos en:
+Descarga o copia los ocho archivos de la carpeta `meshes` anexa al repositorio y ubícalos en:
 
 ```text
 ~/ros2_jazzy/phantom_ws/src/pincher_description/meshes/
@@ -2153,7 +2317,8 @@ Verifica que los ocho archivos estén presentes:
 
 ```bash
 find ~/ros2_jazzy/phantom_ws/src/pincher_description/meshes \
-  -maxdepth 1 -type f -name '*.stl' -printf '%f\n' | sort
+  -maxdepth 1 -type f -name '*.stl' -printf '%f
+' | sort
 ```
 
 Después de copiar las mallas, recompila el workspace. Para visualizar el modelo detallado utiliza:
@@ -2171,6 +2336,7 @@ use_meshes:=false
 ---
 
 ## 13. Compilación del workspace
+
 
 ```bash
 cd ~/ros2_jazzy/phantom_ws
