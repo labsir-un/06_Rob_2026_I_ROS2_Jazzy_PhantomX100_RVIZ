@@ -35,26 +35,25 @@
 - [5. Diferencias entre AX-12A y XL430](#5-diferencias-entre-ax-12a-y-xl430)
 - [6. Instalación de ROS 2 Jazzy y dependencias](#6-instalación-de-ros-2-jazzy-y-dependencias)
 - [7. Preparación del puerto serie](#7-preparación-del-puerto-serie)
-- [8. Creación del workspace y referencia opcional](#8-creación-del-workspace-y-referencia-opcional)
+- [8. Creación del workspace](#8-creación-del-workspace)
 - [9. Estructura completa del repositorio](#9-estructura-completa-del-repositorio)
-- [10. Scripts generales](#10-scripts-generales)
-- [11. Código completo de `pincher_control`](#11-código-completo-de-pincher_control)
-- [12. Código completo de `pincher_description`](#12-código-completo-de-pincher_description)
-- [13. Descarga y ubicación de las mallas STL](#13-descarga-y-ubicación-de-las-mallas-stl)
-- [14. Compilación del workspace](#14-compilación-del-workspace)
-- [15. Práctica 1: modelo del robot sin controlador](#15-práctica-1-modelo-del-robot-sin-controlador)
-- [16. Práctica 2: sistema completo sin hardware](#16-práctica-2-sistema-completo-sin-hardware)
-- [17. Detección del puerto e IDs Dynamixel](#17-detección-del-puerto-e-ids-dynamixel)
-- [18. Práctica 3: conexión con AX-12A](#18-práctica-3-conexión-con-ax-12a)
-- [19. Práctica 4: conexión con XL430](#19-práctica-4-conexión-con-xl430)
-- [20. Uso de la interfaz gráfica](#20-uso-de-la-interfaz-gráfica)
-- [21. Verificación mediante ROS 2 CLI](#21-verificación-mediante-ros-2-cli)
-- [22. Validación del Xacro y de las mallas](#22-validación-del-xacro-y-de-las-mallas)
-- [23. Solución de problemas](#23-solución-de-problemas)
-- [24. Actividad propuesta para estudiantes](#24-actividad-propuesta-para-estudiantes)
-- [25. Publicación en GitHub](#25-publicación-en-github)
-- [26. Cambios respecto a una implementación Humble](#26-cambios-respecto-a-una-implementación-humble)
-- [27. Bibliografía](#27-bibliografía)
+- [10. Código completo de `pincher_control`](#10-código-completo-de-pincher_control)
+- [11. Código completo de `pincher_description`](#11-código-completo-de-pincher_description)
+- [12. Descarga y ubicación de las mallas STL](#12-descarga-y-ubicación-de-las-mallas-stl)
+- [13. Compilación del workspace](#13-compilación-del-workspace)
+- [14. Práctica 1: modelo del robot sin controlador](#14-práctica-1-modelo-del-robot-sin-controlador)
+- [15. Práctica 2: sistema completo sin hardware](#15-práctica-2-sistema-completo-sin-hardware)
+- [16. Detección del puerto e IDs Dynamixel](#16-detección-del-puerto-e-ids-dynamixel)
+- [17. Práctica 3: conexión con AX-12A](#17-práctica-3-conexión-con-ax-12a)
+- [18. Práctica 4: conexión con XL430](#18-práctica-4-conexión-con-xl430)
+- [19. Uso de la interfaz gráfica](#19-uso-de-la-interfaz-gráfica)
+- [20. Verificación mediante ROS 2 CLI](#20-verificación-mediante-ros-2-cli)
+- [21. Validación del Xacro y de las mallas](#21-validación-del-xacro-y-de-las-mallas)
+- [22. Solución de problemas](#22-solución-de-problemas)
+- [23. Actividad propuesta para estudiantes](#23-actividad-propuesta-para-estudiantes)
+- [24. Publicación en GitHub](#24-publicación-en-github)
+- [25. Cambios respecto a una implementación Humble](#25-cambios-respecto-a-una-implementación-humble)
+- [26. Bibliografía](#26-bibliografía)
 
 ---
 
@@ -179,12 +178,6 @@ sudo apt install -y \
   ros-jazzy-rviz2
 ```
 
-También se puede usar el script incluido:
-
-```bash
-cd ~/PhantomX_Pincher_X100_ROS2_Jazzy
-./scripts/install_dependencies.sh
-```
 
 Comprobaciones:
 
@@ -235,46 +228,29 @@ No se recomienda ejecutar el nodo permanentemente con `sudo`.
 
 ---
 
-## 8. Creación del workspace y referencia opcional
+## 8. Creación del workspace
 
-### 8.1 Copiar los paquetes a la ruta recomendada
-
-Desde la raíz del repositorio descargado:
-
-```bash
-./scripts/install_to_home.sh
-```
-
-Esto copia los dos paquetes en:
-
-```text
-~/ros2_jazzy/phantom_ws/src
-```
-
-También puede indicarse otra ruta:
-
-```bash
-./scripts/install_to_home.sh ~/otro_workspace
-```
-
-### 8.2 Crear el workspace manualmente
+El repositorio descargado ya contiene los paquetes `pincher_control` y `pincher_description`. Para trabajar en la ruta recomendada, crea el workspace y copia directamente ambos paquetes:
 
 ```bash
 source /opt/ros/jazzy/setup.bash
+
 mkdir -p ~/ros2_jazzy/phantom_ws/src
+cd ~/PhantomX_Pincher_X100_ROS2_Jazzy
+
+cp -r ros2_jazzy/phantom_ws/src/pincher_control \
+      ~/ros2_jazzy/phantom_ws/src/
+
+cp -r ros2_jazzy/phantom_ws/src/pincher_description \
+      ~/ros2_jazzy/phantom_ws/src/
 ```
 
-Luego copia `pincher_control` y `pincher_description` dentro de `src/`.
+La estructura mínima dentro del workspace debe quedar así:
 
-### 8.3 Clonar el proyecto de referencia de forma opcional
-
-El repositorio de `snt-spacer` se usa como referencia y como fuente de las mallas. Se recomienda clonarlo fuera del workspace principal porque su rama ROS 2 fue documentada originalmente para Galactic y contiene paquetes adicionales no necesarios para esta guía.
-
-```bash
-mkdir -p ~/ros2_jazzy/references
-cd ~/ros2_jazzy/references
-git clone --depth 1 --branch ros2 \
-  https://github.com/snt-spacer/phantomx_pincher.git
+```text
+~/ros2_jazzy/phantom_ws/src/
+├── pincher_control/
+└── pincher_description/
 ```
 
 > Para este proyecto, `rosdep` debe ejecutarse con `--rosdistro jazzy`, no con `--rosdistro humble`.
@@ -288,11 +264,6 @@ PhantomX_Pincher_X100_ROS2_Jazzy/
 ├── README.md
 ├── LICENSE
 ├── .gitignore
-├── scripts/
-│   ├── install_dependencies.sh
-│   ├── download_meshes.sh
-│   ├── install_to_home.sh
-│   └── build_workspace.sh
 └── ros2_jazzy/
     └── phantom_ws/
         └── src/
@@ -333,144 +304,11 @@ PhantomX_Pincher_X100_ROS2_Jazzy/
                     └── px100_8_gripper_finger.stl
 ```
 
-Las STL se obtienen con `scripts/download_meshes.sh`. Mientras no estén disponibles, el Xacro puede mostrar una geometría simplificada con cajas.
+Las ocho mallas STL se entregan en la carpeta `meshes` anexa al repositorio. Deben copiarse dentro de `pincher_description/meshes` conservando exactamente los nombres indicados.
 
 ---
 
-## 10. Scripts generales
-
-#### `scripts/install_dependencies.sh`
-
-```bash
-#!/usr/bin/env bash
-set -euo pipefail
-
-if [[ "${ROS_DISTRO:-}" != "jazzy" ]]; then
-  source /opt/ros/jazzy/setup.bash
-fi
-
-sudo apt update
-sudo apt install -y \
-  python3-colcon-common-extensions \
-  python3-rosdep \
-  python3-tk \
-  python3-serial \
-  git \
-  curl \
-  tree \
-  ros-jazzy-dynamixel-sdk \
-  ros-jazzy-xacro \
-  ros-jazzy-robot-state-publisher \
-  ros-jazzy-joint-state-publisher \
-  ros-jazzy-joint-state-publisher-gui \
-  ros-jazzy-rviz2
-
-if ! rosdep db >/dev/null 2>&1; then
-  sudo rosdep init || true
-fi
-rosdep update
-
-echo "Dependencias instaladas para ROS 2 Jazzy."
-```
-
-#### `scripts/download_meshes.sh`
-
-```bash
-#!/usr/bin/env bash
-set -euo pipefail
-
-REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-DEST="$REPO_ROOT/ros2_jazzy/phantom_ws/src/pincher_description/meshes"
-TMP_DIR="$(mktemp -d)"
-trap 'rm -rf "$TMP_DIR"' EXIT
-
-UPSTREAM_URL="https://github.com/snt-spacer/phantomx_pincher.git"
-UPSTREAM_BRANCH="ros2"
-EXPECTED=(
-  px100_1_base.stl
-  px100_2_shoulder.stl
-  px100_3_upper_arm.stl
-  px100_4_forearm.stl
-  px100_5_gripper.stl
-  px100_6_gripper_prop.stl
-  px100_7_gripper_bar.stl
-  px100_8_gripper_finger.stl
-)
-
-mkdir -p "$DEST"
-echo "Clonando temporalmente $UPSTREAM_URL (rama $UPSTREAM_BRANCH)..."
-git clone --depth 1 --branch "$UPSTREAM_BRANCH" "$UPSTREAM_URL" "$TMP_DIR/upstream"
-
-missing=0
-for mesh in "${EXPECTED[@]}"; do
-  source_file="$(find "$TMP_DIR/upstream" -type f -name "$mesh" -print -quit)"
-  if [[ -z "$source_file" ]]; then
-    echo "ERROR: no se encontró $mesh en el repositorio de referencia." >&2
-    missing=1
-    continue
-  fi
-  cp "$source_file" "$DEST/$mesh"
-  echo "Copiado: $mesh"
-done
-
-if [[ -f "$TMP_DIR/upstream/LICENSE" ]]; then
-  cp "$TMP_DIR/upstream/LICENSE" "$DEST/UPSTREAM_LICENSE"
-fi
-
-if [[ "$missing" -ne 0 ]]; then
-  echo "La descarga quedó incompleta. No compiles con use_meshes:=true hasta resolver los archivos faltantes." >&2
-  exit 1
-fi
-
-echo "Las ocho mallas quedaron instaladas en: $DEST"
-```
-
-#### `scripts/install_to_home.sh`
-
-```bash
-#!/usr/bin/env bash
-set -euo pipefail
-
-REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-SOURCE_SRC="$REPO_ROOT/ros2_jazzy/phantom_ws/src"
-TARGET_WS="${1:-$HOME/ros2_jazzy/phantom_ws}"
-
-mkdir -p "$TARGET_WS/src"
-rm -rf "$TARGET_WS/src/pincher_control" "$TARGET_WS/src/pincher_description"
-cp -a "$SOURCE_SRC/pincher_control" "$TARGET_WS/src/"
-cp -a "$SOURCE_SRC/pincher_description" "$TARGET_WS/src/"
-
-echo "Paquetes copiados en $TARGET_WS/src"
-echo "Ahora ejecuta:"
-echo "  cd $TARGET_WS"
-echo "  source /opt/ros/jazzy/setup.bash"
-echo "  rosdep install -y -r -i --from-paths src --rosdistro jazzy"
-echo "  colcon build --symlink-install"
-```
-
-#### `scripts/build_workspace.sh`
-
-```bash
-#!/usr/bin/env bash
-set -euo pipefail
-
-REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-WS="$REPO_ROOT/ros2_jazzy/phantom_ws"
-
-source /opt/ros/jazzy/setup.bash
-cd "$WS"
-rosdep update
-rosdep install -y -r -i --from-paths src --rosdistro jazzy
-colcon build --symlink-install
-
-echo
-printf 'Compilación terminada. Ejecuta:\n  source %q\n' "$WS/install/setup.bash"
-```
-
-
----
-
-## 11. Código completo de `pincher_control`
+## 10. Código completo de `pincher_control`
 
 `pincher_control` es un paquete `ament_python`. El controlador publica `/joint_states`, recibe objetivos en `/pincher/command`, permite actualizar velocidad y expone servicios estándar sin crear interfaces personalizadas.
 
@@ -1715,7 +1553,7 @@ def generate_launch_description():
 
 ---
 
-## 12. Código completo de `pincher_description`
+## 11. Código completo de `pincher_description`
 
 Aunque un paquete de descripción suele implementarse con `ament_cmake`, esta versión usa `ament_python` porque instala los recursos mediante `setup.py`. No deben mezclarse instrucciones de `ament_cmake` con un `setup.py` de Python.
 
@@ -2271,7 +2109,7 @@ Window Geometry:
 ```markdown
 # Mallas del PhantomX Pincher X100
 
-Esta carpeta debe contener exactamente:
+Descarga los archivos de la carpeta `meshes` anexa al repositorio y ubícalos en esta carpeta. Deben conservar exactamente estos nombres:
 
 - `px100_1_base.stl`
 - `px100_2_shoulder.stl`
@@ -2282,62 +2120,57 @@ Esta carpeta debe contener exactamente:
 - `px100_7_gripper_bar.stl`
 - `px100_8_gripper_finger.stl`
 
-Ejecuta desde la raíz del repositorio:
+Después de copiar las mallas, recompila el workspace para que los archivos también se instalen en el directorio `install/`.
 
-```bash
-./scripts/download_meshes.sh
-```
-
-El paquete puede iniciarse sin estos binarios mediante `use_meshes:=false`; en ese caso se muestra una geometría simplificada para validar TF, articulaciones y `/joint_states`.
+El paquete puede iniciarse temporalmente con `use_meshes:=false` para validar TF, articulaciones y `/joint_states` mediante geometría simplificada.
 ```
 
 
 ---
 
-## 13. Descarga y ubicación de las mallas STL
+## 12. Descarga y ubicación de las mallas STL
 
-Desde la raíz del repositorio:
+Descarga los ocho archivos de la carpeta `meshes` anexa al repositorio y ubícalos en:
 
-```bash
-./scripts/download_meshes.sh
+```text
+~/ros2_jazzy/phantom_ws/src/pincher_description/meshes/
 ```
 
-El script clona temporalmente la rama `ros2` del proyecto de referencia, busca las ocho mallas por nombre, las copia en `pincher_description/meshes` y conserva una copia de la licencia de origen.
+Los nombres deben ser exactamente:
 
-Verifica:
+```text
+px100_1_base.stl
+px100_2_shoulder.stl
+px100_3_upper_arm.stl
+px100_4_forearm.stl
+px100_5_gripper.stl
+px100_6_gripper_prop.stl
+px100_7_gripper_bar.stl
+px100_8_gripper_finger.stl
+```
+
+Verifica que los ocho archivos estén presentes:
 
 ```bash
-find ros2_jazzy/phantom_ws/src/pincher_description/meshes \
+find ~/ros2_jazzy/phantom_ws/src/pincher_description/meshes \
   -maxdepth 1 -type f -name '*.stl' -printf '%f\n' | sort
 ```
 
-Deben aparecer ocho archivos. Después de copiarlos a un workspace ya instalado, recompila para que también queden en `install/pincher_description/share/pincher_description/meshes`.
-
-Sin mallas, usa:
-
-```bash
-use_meshes:=false
-```
-
-Con las ocho mallas instaladas:
+Después de copiar las mallas, recompila el workspace. Para visualizar el modelo detallado utiliza:
 
 ```bash
 use_meshes:=true
 ```
 
----
-
-## 14. Compilación del workspace
-
-### 14.1 Compilar el workspace incluido dentro del repositorio
+Mientras las mallas no estén disponibles, se puede validar el árbol cinemático con:
 
 ```bash
-cd ~/PhantomX_Pincher_X100_ROS2_Jazzy
-./scripts/build_workspace.sh
-source ros2_jazzy/phantom_ws/install/setup.bash
+use_meshes:=false
 ```
 
-### 14.2 Compilar en `~/ros2_jazzy/phantom_ws`
+---
+
+## 13. Compilación del workspace
 
 ```bash
 cd ~/ros2_jazzy/phantom_ws
@@ -2367,7 +2200,7 @@ ros2 pkg prefix pincher_description
 
 ---
 
-## 15. Práctica 1: modelo del robot sin controlador
+## 14. Práctica 1: modelo del robot sin controlador
 
 Esta práctica utiliza `joint_state_publisher_gui`; no ejecuta el controlador DYNAMIXEL.
 
@@ -2390,7 +2223,7 @@ Mueve los sliders del `joint_state_publisher_gui` y comprueba que RViz actualiza
 
 ---
 
-## 16. Práctica 2: sistema completo sin hardware
+## 15. Práctica 2: sistema completo sin hardware
 
 Perfil XL430:
 
@@ -2422,9 +2255,9 @@ Al mover un slider y soltarlo, la GUI publica el comando, el controlador actuali
 
 ---
 
-## 17. Detección del puerto e IDs Dynamixel
+## 16. Detección del puerto e IDs Dynamixel
 
-### 17.1 AX-12A, protocolo 1.0
+### 16.1 AX-12A, protocolo 1.0
 
 ```bash
 ros2 run pincher_control scan_dynamixel --ros-args \
@@ -2435,7 +2268,7 @@ ros2 run pincher_control scan_dynamixel --ros-args \
   -p max_id:=20
 ```
 
-### 17.2 XL430, protocolo 2.0
+### 16.2 XL430, protocolo 2.0
 
 ```bash
 ros2 run pincher_control scan_dynamixel --ros-args \
@@ -2450,7 +2283,7 @@ El escáner solamente ejecuta `ping`; no habilita torque ni mueve los motores.
 
 ---
 
-## 18. Práctica 3: conexión con AX-12A
+## 17. Práctica 3: conexión con AX-12A
 
 Antes de energizar:
 
@@ -2486,7 +2319,7 @@ ros2 launch pincher_description display.launch.py use_meshes:=true
 
 ---
 
-## 19. Práctica 4: conexión con XL430
+## 18. Práctica 4: conexión con XL430
 
 Revisa que los motores estén en modo posición y que todos utilicen protocolo 2.0.
 
@@ -2511,7 +2344,7 @@ El parámetro `torque_limit` se deja en `-1` para XL430, porque la familia X no 
 
 ---
 
-## 20. Uso de la interfaz gráfica
+## 19. Uso de la interfaz gráfica
 
 La GUI contiene:
 
@@ -2543,15 +2376,15 @@ Después de una parada de software, utiliza **Torque ON** antes de enviar un nue
 
 ---
 
-## 21. Verificación mediante ROS 2 CLI
+## 20. Verificación mediante ROS 2 CLI
 
-### 21.1 Nodos
+### 20.1 Nodos
 
 ```bash
 ros2 node list
 ```
 
-### 21.2 Tópicos
+### 20.2 Tópicos
 
 ```bash
 ros2 topic list
@@ -2560,14 +2393,14 @@ ros2 topic echo /joint_states --once
 ros2 topic hz /joint_states
 ```
 
-### 21.3 TF
+### 20.3 TF
 
 ```bash
 ros2 topic hz /tf
 ros2 run tf2_tools view_frames
 ```
 
-### 21.4 Servicios
+### 20.4 Servicios
 
 ```bash
 ros2 service list | grep pincher
@@ -2591,7 +2424,7 @@ Parada de software:
 ros2 service call /pincher/software_stop std_srvs/srv/Trigger "{}"
 ```
 
-### 21.5 Publicar un comando sin GUI
+### 20.5 Publicar un comando sin GUI
 
 ```bash
 ros2 topic pub --once /pincher/command sensor_msgs/msg/JointState "{
@@ -2602,36 +2435,36 @@ ros2 topic pub --once /pincher/command sensor_msgs/msg/JointState "{
 
 ---
 
-## 22. Validación del Xacro y de las mallas
+## 21. Validación del Xacro y de las mallas
 
-### 22.1 Generar URDF sin mallas
+### 21.1 Generar URDF sin mallas
 
 ```bash
 xacro ~/ros2_jazzy/phantom_ws/src/pincher_description/urdf/robot.xacro \
   use_meshes:=false > /tmp/pincher.urdf
 ```
 
-### 22.2 Comprobar el árbol
+### 21.2 Comprobar el árbol
 
 ```bash
 check_urdf /tmp/pincher.urdf
 ```
 
-### 22.3 Generar URDF con mallas
+### 21.3 Generar URDF con mallas
 
 ```bash
 xacro ~/ros2_jazzy/phantom_ws/src/pincher_description/urdf/robot.xacro \
   use_meshes:=true > /tmp/pincher_meshes.urdf
 ```
 
-### 22.4 Verificar archivos instalados
+### 21.4 Verificar archivos instalados
 
 ```bash
 PKG_SHARE=$(ros2 pkg prefix pincher_description)/share/pincher_description
 find "$PKG_SHARE/meshes" -maxdepth 1 -name '*.stl' -printf '%f\n' | sort
 ```
 
-### 22.5 Revisar `/robot_description`
+### 21.5 Revisar `/robot_description`
 
 ```bash
 ros2 topic echo /robot_description --once
@@ -2639,9 +2472,9 @@ ros2 topic echo /robot_description --once
 
 ---
 
-## 23. Solución de problemas
+## 22. Solución de problemas
 
-### 23.1 `No se pudo abrir el puerto`
+### 22.1 `No se pudo abrir el puerto`
 
 ```bash
 ls -l /dev/ttyUSB0
@@ -2650,7 +2483,7 @@ groups
 
 Añade el usuario a `dialout` y vuelve a iniciar sesión.
 
-### 23.2 No se detectan IDs
+### 22.2 No se detectan IDs
 
 Revisa:
 
@@ -2661,24 +2494,26 @@ Revisa:
 - continuidad del bus;
 - IDs dentro del rango escaneado.
 
-### 23.3 RViz muestra el árbol, pero no las mallas
+### 22.3 RViz muestra el árbol, pero no las mallas
 
-Comprueba que existen las ocho STL tanto en `src` como en `install`:
+Comprueba que las ocho STL de la carpeta `meshes` anexa al repositorio hayan sido copiadas tanto en el paquete fuente como en el paquete instalado:
 
 ```bash
-./scripts/download_meshes.sh
-cd ros2_jazzy/phantom_ws
+find ~/ros2_jazzy/phantom_ws/src/pincher_description/meshes \
+  -maxdepth 1 -type f -name '*.stl' -printf '%f\n' | sort
+
+cd ~/ros2_jazzy/phantom_ws
 colcon build --symlink-install
 source install/setup.bash
 ```
 
 Después inicia con `use_meshes:=true`.
 
-### 23.4 RViz muestra cajas en vez del robot detallado
+### 22.4 RViz muestra cajas en vez del robot detallado
 
 Eso significa que se inició con `use_meshes:=false`. Es un modo válido para comprobar cinemática y TF.
 
-### 23.5 El modelo no se mueve
+### 22.5 El modelo no se mueve
 
 ```bash
 ros2 topic hz /joint_states
@@ -2687,11 +2522,11 @@ ros2 topic echo /pincher/command --once
 
 No ejecutes dos publicadores diferentes de `/joint_states` al mismo tiempo.
 
-### 23.6 El robot físico se mueve en sentido contrario
+### 22.6 El robot físico se mueve en sentido contrario
 
 Detén el sistema y corrige `joint_signs`. Cambia solamente una articulación por vez y prueba a baja velocidad.
 
-### 23.7 HOME no funciona después de la parada
+### 22.7 HOME no funciona después de la parada
 
 Es intencional. La parada deshabilita torque y HOME no lo reactiva automáticamente. Ejecuta:
 
@@ -2700,11 +2535,11 @@ ros2 service call /pincher/torque_enable std_srvs/srv/SetBool "{data: true}"
 ros2 service call /pincher/home std_srvs/srv/Trigger "{}"
 ```
 
-### 23.8 Se mezclaron instrucciones `ament_cmake` y `setup.py`
+### 22.8 Se mezclaron instrucciones `ament_cmake` y `setup.py`
 
 Este `pincher_description` es `ament_python`. Si se desea convertir a `ament_cmake`, debe crearse un `CMakeLists.txt` y cambiar el `<build_type>`; no se deben mantener ambos esquemas parcialmente.
 
-### 23.9 `rosdep` intenta resolver Humble
+### 22.9 `rosdep` intenta resolver Humble
 
 Usa:
 
@@ -2714,7 +2549,7 @@ rosdep install -y -r -i --from-paths src --rosdistro jazzy
 
 ---
 
-## 24. Actividad propuesta para estudiantes
+## 23. Actividad propuesta para estudiantes
 
 ### Objetivo
 
@@ -2744,12 +2579,12 @@ Añadir un botón de secuencia que envíe tres configuraciones predefinidas sin 
 
 ---
 
-## 25. Publicación en GitHub
+## 24. Publicación en GitHub
 
 Antes de publicar:
 
 1. reemplaza `pendiente@ejemplo.invalid` por el correo definido por los responsables;
-2. descarga las mallas y conserva `UPSTREAM_LICENSE`;
+2. verifica que las ocho mallas STL estén incluidas en `pincher_description/meshes`;
 3. valida el modo sin hardware;
 4. revisa que no existan `build/`, `install/` ni `log/` en el commit.
 
@@ -2767,14 +2602,14 @@ No se incluye una URL inventada: reemplaza `<URL_DEL_REPOSITORIO>` por la direcc
 
 ---
 
-## 26. Cambios respecto a una implementación Humble
+## 25. Cambios respecto a una implementación Humble
 
 | Elemento | Implementación antigua o inconsistente | Esta versión Jazzy |
 |---|---|---|
 | Distribución | `--rosdistro humble` | `--rosdistro jazzy` |
 | Ubuntu | 22.04 | 24.04 |
 | Python | 3.10 | 3.12 |
-| Ruta del workspace | rutas mezcladas | ruta documentada y scripts relativos |
+| Ruta del workspace | rutas mezcladas | una única ruta documentada |
 | Paquete descripción | se indicaba `ament_cmake` pero se entregaba `setup.py` | `ament_python` consistente |
 | Estado articular | no se publicaba realmente en el código básico | publicación periódica de `/joint_states` |
 | GUI | no integrada | nodo Tkinter separado |
@@ -2787,7 +2622,7 @@ No se incluye una URL inventada: reemplaza `<URL_DEL_REPOSITORIO>` por la direcc
 
 ---
 
-## 27. Bibliografía
+## 26. Bibliografía
 
 [1] ROBOTIS, “AX-12A,” DYNAMIXEL e-Manual. Disponible: https://emanual.robotis.com/docs/en/dxl/ax/ax-12a/
 
