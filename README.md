@@ -9,7 +9,7 @@
 
 <h1>PhantomX Pincher X100 con ROS 2 Jazzy</h1>
 
-<h2>Guía 05 - Control del Robot Real, Interfaz Gráfica y Visualización en RViz</h2>
+<h2>Guía 06 - Control del Robot Real, Interfaz Gráfica y Visualización en RViz</h2>
 
 <h4>Pedro Fabián Cárdenas Herrera<br>
     Manuel Felipe Carranza Montenegro</h4>
